@@ -35,11 +35,14 @@ RUN rm -rf /usr/local/aws-cli/v2/current/dist/aws_completer \
 FROM alpine:${ALPINE_VERSION}
 
 # Install runtime dependencies
-RUN apk --no-cache add jq less groff
+RUN apk --no-cache add jq less groff bash
 
 # Copy AWS CLI from the builder stage
 COPY --from=builder /usr/local/aws-cli/ /usr/local/aws-cli/
 COPY --from=builder /aws-cli-bin/ /usr/local/bin/
+
+# Set the default shell to Bash
+SHELL ["/bin/bash", "-c"]
 
 # Set environment variables
 ENV PATH="/usr/local/aws-cli/v2/current/bin:$PATH"
@@ -48,5 +51,5 @@ ENV LANG='C.UTF-8'
 # Verify the installation
 RUN aws --version && jq --version
 
-# Define the entrypoint to start an interactive shell
-ENTRYPOINT ["/bin/ash"]
+# Start an interactive Bash session by default
+CMD ["/bin/bash"]
