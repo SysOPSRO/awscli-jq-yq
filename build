@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+# This script creates a buildx environment if it doesn't exist,
+# then builds and pushes a Docker image to a specified registry.
+
+# Configuration
+BUILDX_ENV_NAME="buildx"
+REPOSITORY="thenaim/awscli-jq"
+
+
+# Build and push the Docker image to the registry
+build_and_push_image() {
+    echo -n "Enter the image tag as awscli version (e.g., 'v2.15.30'): "
+    read -r image_tag
+    docker build \
+        -t "$REPOSITORY:$image_tag" \
+        --push . || {
+        echo "Failed to build and push Docker image."
+        exit 1
+    }
+}
+
+# Main script execution
+build_and_push_image "$1"
