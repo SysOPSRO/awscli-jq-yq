@@ -4,16 +4,20 @@
 # then builds and pushes a Docker image to a specified registry.
 
 # Configuration
+[[ -n "$1" ]] &&  { image_tag="${1}"; }
 BUILDX_ENV_NAME="buildx"
-REPOSITORY="thenaim/awscli-jq"
+REPOSITORY="sysopsro/awshelpers"
 
-
+set -x
 # Build and push the Docker image to the registry
 build_and_push_image() {
-    echo -n "Enter the image tag as awscli version (e.g., 'v2.15.30'): "
-    read -r image_tag
+    if [[ -z "${1}" ]]; then
+        echo -n "Enter the image tag as awscli version (e.g., '2.22.6'): "
+        read -r image_tag
+    fi
     docker build \
-        -t "$REPOSITORY:$image_tag" \
+        -t "${REPOSITORY}:${image_tag}" \
+        --platform linux/amd64 \
         --push . || {
         echo "Failed to build and push Docker image."
         exit 1
@@ -21,4 +25,4 @@ build_and_push_image() {
 }
 
 # Main script execution
-build_and_push_image "$1"
+build_and_push_image "${image_tag}"
