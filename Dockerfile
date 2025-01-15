@@ -35,7 +35,9 @@ RUN rm -rf /usr/local/aws-cli/v2/current/dist/aws_completer \
 FROM alpine:${ALPINE_VERSION}
 
 # Install runtime dependencies
-RUN apk --no-cache add jq yq gawk less groff bash
+RUN apk --no-cache add jq yq gawk less groff bash nano mc htop
+RUN ln -sf /bin/bash /bin/pushd
+RUN ln -sf /bin/bash /bin/popd
 
 # Copy AWS CLI from the builder stage
 COPY --from=builder /usr/local/aws-cli/ /usr/local/aws-cli/
