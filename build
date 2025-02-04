@@ -17,7 +17,7 @@ build_and_push_image() {
         read -r image_tag
     fi
     docker buildx build --cache-to=type=inline \
-        --cache-from=type=registry,ref=docker.io/${REPOSITORY}:${image_tag}-amd64 \
+        --cache-from=type=registry,ref=docker.io/${REPOSITORY}:latest-amd64 \
         -t "${REPOSITORY}:${image_tag}-amd64" -t "${REPOSITORY}:latest-amd64" \
         --platform linux/amd64 \
         --push . || {
