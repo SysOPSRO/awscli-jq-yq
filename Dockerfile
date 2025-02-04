@@ -7,7 +7,7 @@ ARG AWS_CLI_PYTHON_VERSION=3.11
 FROM python:${AWS_CLI_PYTHON_VERSION}-alpine AS builder
 
 # Install build dependencies
-RUN apk add --no-cache git unzip groff build-base libffi-dev cmake
+RUN apk add --no-cache git unzip groff build-base libffi-dev cmake zlib zlib-dev
 
 # Clone the AWS CLI repository
 ARG AWS_CLI_VERSION
@@ -35,7 +35,7 @@ RUN rm -rf /usr/local/aws-cli/v2/current/dist/aws_completer \
 FROM alpine:${ALPINE_VERSION}
 
 # Install runtime dependencies
-RUN apk --no-cache add jq yq gawk less groff bash nano mc htop
+RUN apk --no-cache add jq yq gawk less groff bash nano mc htop coreutils
 RUN ln -sf /bin/bash /bin/pushd
 RUN ln -sf /bin/bash /bin/popd
 
