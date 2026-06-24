@@ -7,7 +7,7 @@ ARG AWS_CLI_PYTHON_VERSION=3.11
 FROM python:${AWS_CLI_PYTHON_VERSION}-alpine AS builder
 
 # Install build dependencies
-RUN apk add --no-cache git unzip groff build-base libffi-dev cmake zlib zlib-dev
+RUN apk add --no-cache git unzip groff build-base libffi-dev cmake zlib zlib-dev binutils upx curl
 
 # Clone the AWS CLI repository
 ARG AWS_CLI_VERSION
@@ -31,11 +31,14 @@ RUN rm -rf /usr/local/aws-cli/v2/current/dist/aws_completer \
     find /usr/local/aws-cli/v2/current/dist/awscli/data -name completions-1*.json -delete && \
     find /usr/local/aws-cli/v2/current/dist/awscli/botocore/data -name examples-1.json -delete
 
+RUN curl -sSLo /aws-cli-bin/cli53 https://github.com/barnybug/cli53/releases/download/v0.9.0/cli53-linux-amd64 && \
+    chmod +x /aws-cli-bin/cli53 && upx -9 /aws-cli-bin/cli53
+
 ### Final Stage ###
 FROM alpine:${ALPINE_VERSION}
 
 # Install runtime dependencies
-RUN apk --no-cache add jq yq gawk less groff bash nano mc htop coreutils
+RUN apk --no-cache add jq yq gawk less groff bash nano mc htop coreutils curl
 RUN ln -sf /bin/bash /bin/pushd
 RUN ln -sf /bin/bash /bin/popd
 
