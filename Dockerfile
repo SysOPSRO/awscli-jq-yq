@@ -45,6 +45,8 @@ RUN ln -sf /bin/bash /bin/popd
 # Copy AWS CLI from the builder stage
 COPY --from=builder /usr/local/aws-cli/ /usr/local/aws-cli/
 COPY --from=builder /aws-cli-bin/ /usr/local/bin/
+COPY tools/* /usr/local/bin/
+RUN chmod +x /usr/local/bin/dns-purge-unused.sh
 
 # Set the default shell to Bash
 SHELL ["/bin/bash", "-c"]
