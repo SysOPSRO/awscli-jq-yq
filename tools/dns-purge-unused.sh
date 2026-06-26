@@ -25,7 +25,7 @@ r53uniq() {
 }
 
 echo "Exporting current zone for $DOMAIN..."
-#cli53 export "$DOMAIN" > "$ZONE_FILE"
+cli53 export "$DOMAIN" > "$ZONE_FILE"
 
 echo "Extracting active Service and Ingress hostnames for $DOMAIN..."
 export SVC="$(kubectl get svc -o yaml -A | yq -r '.items[]|.metadata.annotations.external-dns*' | r53uniq "$DOMAIN" | xargs -r | sed 's% %|%g')"
