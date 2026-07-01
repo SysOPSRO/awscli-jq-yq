@@ -38,7 +38,7 @@ RUN curl -sSLo /aws-cli-bin/cli53 https://github.com/barnybug/cli53/releases/dow
 FROM alpine:${ALPINE_VERSION}
 
 # Install runtime dependencies
-RUN apk --no-cache add jq yq gawk less groff bash nano mc htop coreutils curl kubectl
+RUN apk --no-cache add jq yq gawk less groff bash nano mc htop coreutils curl kubectl python3 py3-pip py3-mysqlclient py3-pymysql git
 RUN ln -sf /bin/bash /bin/pushd
 RUN ln -sf /bin/bash /bin/popd
 
