@@ -1,7 +1,7 @@
 # Build arguments
 ARG ALPINE_VERSION=3.24
 ARG AWS_CLI_VERSION=2.22.6
-ARG AWS_CLI_PYTHON_VERSION=3.11
+ARG AWS_CLI_PYTHON_VERSION=3.10
 
 ### Builder Stage ###
 FROM python:${AWS_CLI_PYTHON_VERSION}-alpine${ALPINE_VERSION} AS builder
@@ -16,7 +16,7 @@ RUN git clone --single-branch --depth 1 -b ${AWS_CLI_VERSION} https://github.com
 # Set the working directory
 WORKDIR /aws-cli
 
-ENV SETUPTOOLS_USE_DISTUTILS=stdlib
+# ENV SETUPTOOLS_USE_DISTUTILS=stdlib
 # Create a virtual environment and install AWS CLI
 RUN python -m venv venv && \
     . venv/bin/activate && \
