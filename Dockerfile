@@ -1,13 +1,13 @@
 # Build arguments
-ARG ALPINE_VERSION=3.20.3
+ARG ALPINE_VERSION=3.24
 ARG AWS_CLI_VERSION=2.22.6
 ARG AWS_CLI_PYTHON_VERSION=3.11
 
 ### Builder Stage ###
-FROM python:${AWS_CLI_PYTHON_VERSION}-alpine AS builder
+FROM python:${AWS_CLI_PYTHON_VERSION}-alpine${ALPINE_VERSION} AS builder
 
 # Install build dependencies
-RUN apk add --no-cache git unzip groff build-base libffi-dev cmake zlib zlib-dev binutils upx curl
+RUN apk add --no-cache git unzip groff build-base libffi-dev zlib zlib-dev binutils upx curl openssl-dev cargo python3-dev musl-dev
 
 # Clone the AWS CLI repository
 ARG AWS_CLI_VERSION
@@ -26,25 +26,44 @@ RUN python -m venv venv && \
 
 # Reduce image size: remove autocomplete and examples
 RUN rm -rf /usr/local/aws-cli/v2/current/dist/aws_completer \
-           /usr/local/aws-cli/v2/current/dist/awscli/data/ac.index \
-           /usr/local/aws-cli/v2/current/dist/awscli/examples && \
+    /usr/local/aws-cli/v2/current/dist/awscli/data/ac.index \
+    /usr/local/aws-cli/v2/current/dist/awscli/examples && \
     find /usr/local/aws-cli/v2/current/dist/awscli/data -name completions-1*.json -delete && \
-    find /usr/local/aws-cli/v2/current/dist/awscli/botocore/data -name examples-1.json -delete
+    find /usr/local/aws-cli/v2/current/dist/awscli/botocore/data -name examples-1.json -delete && \
+		find /usr/local/aws-cli/ /aws-cli-bin/ -type f -executable -exec strip --strip-unneeded {} + || true
 
-RUN curl -sSLo /aws-cli-bin/cli53 https://github.com/barnybug/cli53/releases/download/v0.9.0/cli53-linux-amd64 && \
-    chmod +x /aws-cli-bin/cli53 && upx -9 /aws-cli-bin/cli53
+ARG TARGETARCH
+RUN case "${TARGETARCH}" in \
+      amd64)  CLI53_ARCH="amd64" ;; \
+      arm64)  CLI53_ARCH="arm64" ;; \
+      *) echo "Unsupported arch: ${TARGETARCH}" && exit 1 ;; \
+    esac && \
+    curl -sSLo /aws-cli-bin/cli53 \
+      https://github.com/barnybug/cli53/releases/download/v0.9.0/cli53-linux-${CLI53_ARCH} && \
+    chmod +x /aws-cli-bin/cli53 && \
+    upx -9 /aws-cli-bin/cli53
+
+# install custodian
+RUN python3 -m venv /opt/custodian && \
+    . /opt/custodian/bin/activate && \
+    pip install --upgrade pip && \
+    pip install "c7n[aws]" && \
+    custodian version
+# clean custodian venv
+RUN rm -rf /opt/custodian/lib/python*/site-packages/pip \
+    /opt/custodian/lib/python*/site-packages/setuptools \
+    /opt/custodian/lib/python*/site-packages/wheel
 
 ### Final Stage ###
-FROM alpine:${ALPINE_VERSION}
+FROM python:${AWS_CLI_PYTHON_VERSION}-alpine${ALPINE_VERSION}
 
 # Install runtime dependencies
-RUN apk --no-cache add jq yq gawk less groff bash nano mc htop coreutils curl kubectl python3 py3-pip py3-mysqlclient py3-pymysql git
-RUN ln -sf /bin/bash /bin/pushd
-RUN ln -sf /bin/bash /bin/popd
+RUN apk --no-cache add jq yq gawk less groff bash nano mc htop coreutils curl kubectl py3-mysqlclient py3-pymysql git redis
 
 # Copy AWS CLI from the builder stage
 COPY --from=builder /usr/local/aws-cli/ /usr/local/aws-cli/
 COPY --from=builder /aws-cli-bin/ /usr/local/bin/
+COPY --from=builder /opt/custodian /opt/custodian
 COPY tools/* /usr/local/bin/
 RUN chmod +x /usr/local/bin/dns-purge-unused.sh
 
@@ -52,11 +71,11 @@ RUN chmod +x /usr/local/bin/dns-purge-unused.sh
 SHELL ["/bin/bash", "-c"]
 
 # Set environment variables
-ENV PATH="/usr/local/aws-cli/v2/current/bin:$PATH"
+ENV PATH="/opt/custodian/bin:/usr/local/aws-cli/v2/current/bin:$PATH"
 ENV LANG='C.UTF-8'
 
 # Verify the installation
-RUN aws --version && jq --version && yq --version
+RUN aws --version && jq --version && yq --version && custodian version
 
 # Start an interactive Bash session by default
 CMD ["/bin/bash"]

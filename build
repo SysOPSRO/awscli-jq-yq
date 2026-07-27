@@ -11,26 +11,42 @@ REPOSITORY="sysopsro/awshelpers"
 
 set -x
 # Build and push the Docker image to the registry
+# build_and_push_image() {
+#     if [[ -z "${1}" ]]; then
+#         echo -n "Enter the image tag as awscli version (e.g., '2.22.6'): "
+#         read -r image_tag
+#     fi
+#     docker buildx build --cache-to=type=inline \
+#         --cache-from=type=registry,ref=docker.io/${REPOSITORY}:latest-amd64 \
+#         -t "${REPOSITORY}:${image_tag}-amd64" -t "${REPOSITORY}:latest-amd64" \
+#         --platform linux/amd64 --progress plain \
+#         --push . || {
+#         echo "Failed to build and push Docker amd64 image."
+#         exit 1
+#     }
+#     # docker build \
+#     #     -t "${REPOSITORY}:${image_tag}-arm64" \
+#     #     --platform linux/arm/v7 \
+#     #     --push . || {
+#     #     echo "Failed to build and push Docker arm64 image."
+#     #     exit 1
+#     # }
+# }
+
 build_and_push_image() {
     if [[ -z "${1}" ]]; then
         echo -n "Enter the image tag as awscli version (e.g., '2.22.6'): "
         read -r image_tag
     fi
-    docker buildx build --cache-to=type=inline \
-        --cache-from=type=registry,ref=docker.io/${REPOSITORY}:latest-amd64 \
-        -t "${REPOSITORY}:${image_tag}-amd64" -t "${REPOSITORY}:latest-amd64" \
-        --platform linux/amd64 --progress plain \
-        --push . || {
-        echo "Failed to build and push Docker amd64 image."
-        exit 1
-    }
-    # docker build \
-    #     -t "${REPOSITORY}:${image_tag}-arm64" \
-    #     --platform linux/arm/v7 \
-    #     --push . || {
-    #     echo "Failed to build and push Docker arm64 image."
-    #     exit 1
-    # }
+
+    docker buildx build \
+        --platform linux/amd64,linux/arm64 \
+        --cache-to=type=inline \
+        -t "${REPOSITORY}:${image_tag}" \
+        -t "${REPOSITORY}:latest" \
+        --push \
+        --progress plain \
+        .
 }
 
 # Main script execution
