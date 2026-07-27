@@ -91,7 +91,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nano \
     mc \
     htop \
-    coreutils \
     curl \
     kubectl \
     default-mysql-client \
