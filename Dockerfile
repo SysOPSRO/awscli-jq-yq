@@ -19,7 +19,8 @@ WORKDIR /aws-cli
 # Create a virtual environment and install AWS CLI
 RUN python -m venv venv && \
     . venv/bin/activate && \
-    scripts/installers/make-exe && \
+    pip install --upgrade pip setuptools wheel && \
+    PIP_NO_BUILD_ISOLATION=1 scripts/installers/make-exe && \
     unzip -q dist/awscli-exe.zip && \
     aws/install --bin-dir /aws-cli-bin && \
     /aws-cli-bin/aws --version
