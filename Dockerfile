@@ -16,12 +16,12 @@ RUN git clone --single-branch --depth 1 -b ${AWS_CLI_VERSION} https://github.com
 # Set the working directory
 WORKDIR /aws-cli
 
+ENV SETUPTOOLS_USE_DISTUTILS=stdlib
 # Create a virtual environment and install AWS CLI
 RUN python -m venv venv && \
     . venv/bin/activate && \
     pip install --upgrade pip wheel && \
     pip install "setuptools<70" && \
-    pip install "ruamel.yaml.clib<0.2.8" && \
     PIP_NO_BUILD_ISOLATION=1 scripts/installers/make-exe && \
     unzip -q dist/awscli-exe.zip && \
     aws/install --bin-dir /aws-cli-bin && \
