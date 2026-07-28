@@ -52,6 +52,7 @@ jobs:
         with:
           images: |
             ghcr.io/${{ env.IMAGE_NAME }}
+            docker.io/${{ secrets.DOCKER_USERNAME }}/awshelpers
           tags: |
             type=schedule
             type=semver,pattern={{major}}.{{minor}}.{{patch}}
@@ -72,3 +73,22 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
+
+      # ${{ github.event.repository.name }}
+      #
+      - name: Generate image summary
+        run: |
+          echo "## 🐳 Docker Images Published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Registry | Image | Platforms |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|-----------|" >> $GITHUB_STEP_SUMMARY
+          FIRST_TAG=$(printf '%s\n' "${{ steps.meta.outputs.tags }}" | head -n 1)
+          echo "| GitHub Container Registry | \`${FIRST_TAG}\` | linux/amd64, linux/arm64 |" >> $GITHUB_STEP_SUMMARY
+          DOCKER_TAG=$(printf '%s\n' "${{ steps.meta.outputs.tags }}" | grep docker.io | head -n 1)
+          echo "| Docker Hub | \`${DOCKER_TAG}\` | linux/amd64, linux/arm64 |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🏷️ All generated tags" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          printf '%s\n' "${{ steps.meta.outputs.tags }}" | while IFS= read -r tag; do
+            echo "- \`$tag\`" >> $GITHUB_STEP_SUMMARY
+          done
