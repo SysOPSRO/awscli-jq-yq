@@ -98,6 +98,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-pymysql \
     git \
     redis-tools \
+    psutils \
+    procps \
+    msmtp \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy AWS CLI from the builder stage
